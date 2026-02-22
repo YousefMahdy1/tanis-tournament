@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="standings.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body>
+
+<!-- ===== أدوات الإدخال ===== -->
+<div class="controls">
+
+<input id="team" placeholder="اسم الفريق">
+<input id="played" type="number" placeholder="لعب">
+<input id="win" type="number" placeholder="فوز">
+<input id="draw" type="number" placeholder="تعادل">
+<input id="lose" type="number" placeholder="هزيمة">
+<input id="gf" type="number" placeholder="له">
+<input id="ga" type="number" placeholder="عليه">
+
+<button onclick="addTeam()">إضافة فريق</button>
+<button onclick="download()">تحميل PNG</button>
+
+</div>
+
+<!-- ===== الجدول ===== -->
+<div id="tableBox" class="standings">
+
+<h1>جدول ترتيب بطولة مركز شباب تانيس الرمضانية</h1>
+<h2>المجموعة (A)</h2>
+
+<table>
+<thead>
+<tr>
+<th>م</th>
+<th>الفريق</th>
+<th>لعب</th>
+<th>فوز</th>
+<th>تعادل</th>
+<th>هزيمة</th>
+<th>له</th>
+<th>عليه</th>
+<th>نقاط</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+</div>
+
+<script src="standings.js"></script>
+</body>
+</html>

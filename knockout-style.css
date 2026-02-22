@@ -1,0 +1,142 @@
+/* خلفية وتنسيق عام لصفحة الإقصائيات */
+body {
+    background-color: #0a0a0a;
+    overflow-x: auto;
+}
+
+.nav-bar {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: #1a1a1a;
+    border-bottom: 2px solid #ffd700;
+}
+
+.page-title {
+    flex-grow: 1;
+    text-align: center;
+    color: #ffd700;
+    margin: 0;
+}
+
+/* حاوية الشجرة */
+.bracket-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 40px;
+    min-width: 1000px; /* لضمان عدم تداخل الأعمدة */
+}
+
+.bracket-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 200px;
+}
+
+.round-header {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #fff;
+    background: #e50914;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+}
+
+/* كارت المباراة */
+.match-card {
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    margin: 10px 0;
+    transition: 0.3s;
+}
+
+.match-card:hover {
+    border-color: #ffd700;
+    transform: scale(1.05);
+}
+
+.team-slot {
+    padding: 12px;
+    color: #eee;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.team-slot:first-child {
+    border-bottom: 1px solid #333;
+}
+
+/* تمييز النهائي */
+.gold-border {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.champion-zone {
+    margin-top: 20px;
+    text-align: center;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+#winner-name {
+    font-size: 1.5rem;
+    margin-top: 10px;
+    padding: 15px;
+    background: linear-gradient(45deg, #ffd700, #c9a227);
+    color: #000;
+    border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bracket-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .bracket-column {
+        margin-bottom: 50px;
+    }
+}
+/* تنسيق خانات الأهداف */
+.score-input {
+    width: 40px;
+    background: #333;
+    border: 1px solid #ffd700;
+    color: #fff;
+    text-align: center;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.team-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px !important;
+}
+
+.win-btn {
+    width: 100%;
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.win-btn:hover {
+    background: #45a049;
+}
+
+.winner-highlight {
+    color: #ffd700 !important;
+    font-weight: bold;
+    background: rgba(255, 215, 0, 0.1);
+}

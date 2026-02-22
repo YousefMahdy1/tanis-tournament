@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>قائمة الهدافين - مركز شباب تانيس</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* تحسينات إضافية خاصة بجدول الهدافين */
+        .gold-row {
+            background: linear-gradient(90deg, #ffd700, #b8860b) !important;
+            color: black !important;
+            font-weight: bold;
+        }
+        .nav-link {
+            display: inline-block;
+            margin: 20px;
+            text-decoration: none;
+            background: #e50914;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .nav-link:hover {
+            background: #ff1e1e;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="nav-link">العودة للوحة الإدارة</a>
+
+    <h1 class="title">ترتيب هدافي البطولة ⚽</h1>
+
+    <div class="card" style="width: 95%; max-width: 800px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>م</th>
+                    <th>اللاعب</th>
+                    <th>الفريق</th>
+                    <th>الأهداف</th>
+                </tr>
+            </thead>
+            <tbody id="scorersTable">
+                </tbody>
+        </table>
+    </div>
+
+    <script src="script.js"></script>
+    
+    <script>
+        function renderScorers() {
+            // جلب البيانات من LocalStorage
+            let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
+            
+            // ترتيب الهدافين من الأكثر إلى الأقل
+            scorers.sort((a, b) => b.goals - a.goals);
+
+            const tableBody = document.getElementById("scorersTable");
+            tableBody.innerHTML = "";
+
+            if (scorers.length === 0) {
+                tableBody.innerHTML = "<tr><td colspan='4'>لا يوجد أهداف مسجلة حتى الآن</td></tr>";
+                return;
+            }
+
+            scorers.forEach((p, i) => {
+                const tr = document.createElement("tr");
+                
+                // تمييز هداف البطولة (المركز الأول) بلون ذهبي
+                if (i === 0) tr.classList.add("gold-row");
+
+                tr.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>${p.name}</td>
+                    <td>${p.team}</td>
+                    <td>${p.goals}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // تشغيل الدالة عند تحميل الصفحة
+        window.onload = renderScorers;
+    </script>
+
+</body>
+</html>

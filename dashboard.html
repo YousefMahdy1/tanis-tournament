@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة الإحصائيات - مركز شباب تانيس</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* تحسين مظهر كروت الإحصائيات */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .stat-card {
+            background: linear-gradient(145deg, #b30000, #7a0000);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            border: 1px solid #ffd700;
+        }
+        .stat-card h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+        .stat-card p {
+            font-size: 2rem;
+            margin: 10px 0 0 0;
+            font-weight: bold;
+        }
+        .nav-btn {
+            display: inline-block;
+            margin: 20px;
+            text-decoration: none;
+            color: #000;
+            background: #ffd700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="nav-bar">
+    <a href="index.html" class="nav-btn">الرئيسية</a>
+    <a href="knockout.html" class="nav-btn">شجرة الإقصائيات</a>
+</div>
+    
+    
+    <h1 class="title">إحصائيات البطولة الرمضانية 📊</h1>
+
+    <div class="stats">
+        <div class="stat-card">
+            <h3>المباريات</h3>
+            <p id="matches">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>الأهداف</h3>
+            <p id="goals">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>الفرق المشاركة</h3>
+            <p id="teams">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>هداف البطولة</h3>
+            <p id="topScorer" style="font-size: 1.5rem;">-</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // سنستخدم الدالة المحدثة التي كتبناها في script.js
+        // ولكن سنضيف تأكيداً هنا لضمان عملها بشكل مستقل
+        function refreshDashboard() {
+            let matches = JSON.parse(localStorage.getItem("matches")) || [];
+            let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
+            let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
+
+            // 1. حساب عدد الفرق من كافة المجموعات
+            let totalTeams = 0;
+            for (let g in tournament.groups) {
+                totalTeams += tournament.groups[g].length;
+            }
+
+            // 2. حساب الأهداف بدقة
+            let totalGoals = matches.reduce((sum, m) => sum + (Number(m.homeGoals) || 0) + (Number(m.awayGoals) || 0), 0);
+
+            // 3. ترتيب الهدافين
+            let top = scorers.sort((a, b) => b.goals - a.goals)[0];
+
+            // 4. تحديث الواجهة
+            document.getElementById("matches").innerText = matches.length;
+            document.getElementById("goals").innerText = totalGoals;
+            document.getElementById("teams").innerText = totalTeams;
+            document.getElementById("topScorer").innerText = top ? top.name : "-";
+        }
+
+        // تشغيل التحديث عند التحميل
+        window.onload = refreshDashboard;
+    </script>
+
+</body>
+</html>

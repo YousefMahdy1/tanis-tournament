@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شجرة البطولة - مركز شباب تانيس</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="knockout-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-btn">الرئيسية</a>
+        <h1 class="page-title">شجرة الأدوار الإقصائية 🏆</h1>
+    </div>
+
+    <div class="bracket-container">
+        
+        <div class="bracket-column">
+            <h2 class="round-header">دور الـ 16</h2>
+            <div id="r16-list">
+                </div>
+        </div>
+
+        <div class="bracket-column">
+            <h2 class="round-header">ربع النهائي</h2>
+            <div id="qf-list">
+                <div class="match-card"><div class="team-slot">؟</div><div class="team-slot">؟</div></div>
+                <div class="match-card"><div class="team-slot">؟</div><div class="team-slot">؟</div></div>
+                <div class="match-card"><div class="team-slot">؟</div><div class="team-slot">؟</div></div>
+                <div class="match-card"><div class="team-slot">؟</div><div class="team-slot">؟</div></div>
+            </div>
+        </div>
+
+        <div class="bracket-column">
+            <h2 class="round-header">نصف النهائي</h2>
+            <div id="sf-list">
+                <div class="match-card"><div class="team-slot">؟</div><div class="team-slot">؟</div></div>
+                <div class="match-card"><div class="team-slot">؟</div><div class="team-slot">؟</div></div>
+            </div>
+        </div>
+
+        <div class="bracket-column">
+            <h2 class="round-header">النهائي</h2>
+            <div class="match-card gold-border">
+                <div class="team-slot">؟</div>
+                <div class="team-slot">؟</div>
+            </div>
+            <div class="champion-zone">
+                <span>البطل 🏆</span>
+                <div id="winner-name">؟</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="data/groups.js"></script>
+    <script src="modules/knockout.js"></script>
+    <script src="script.js"></script>
+   <script>
+    // 1. دالة عرض مباريات دور الـ 16 عند تحميل الصفحة
+    function renderKnockout() {
+    const matches = createRound16();
+    const container = document.getElementById("r16-list");
+    if (!container) return;
+
+    container.innerHTML = ""; // مسح المحتوى القديم
+
+    matches.forEach((m, index) => {
+        // التحقق من وجود الفريق أو وضع نص بديل
+        const name1 = m[0] ? m[0].name : "بانتظار المتأهل";
+        const name2 = m[1] ? m[1].name : "بانتظار المتأهل";
+
+        container.innerHTML += `
+            <div class="match-card">
+                <div class="team-slot">
+                    <span>${name1}</span>
+                    <input type="number" id="m16-${index}-g1" class="score-input">
+                </div>
+                <div class="team-slot">
+                    <span>${name2}</span>
+                    <input type="number" id="m16-${index}-g2" class="score-input">
+                </div>
+                <button onclick="advanceWinner(${index})" class="win-btn">تأكيد المتأهل</button>
+            </div>
+        `;
+    });
+}
+
+    // 2. دالة تحديد الفائز وتسجيل الهدافين وتصعيد الفريق للدور التالي
+    function advanceWinner(matchIndex) {
+        const g1 = parseInt(document.getElementById(`m16-${matchIndex}-g1`).value);
+        const g2 = parseInt(document.getElementById(`m16-${matchIndex}-g2`).value);
+        
+        if (isNaN(g1) || isNaN(g2)) return alert("برجاء إدخال الأهداف أولاً");
+
+        const matches = createRound16();
+        const team1 = matches[matchIndex][0];
+        const team2 = matches[matchIndex][1];
+
+        // --- تسجيل الهدافين ---
+        if (g1 > 0) recordScorers(team1.name, g1);
+        if (g2 > 0) recordScorers(team2.name, g2);
+
+        // --- تحديد الفائز ---
+        let winnerName = "";
+        if (g1 > g2) {
+            winnerName = team1.name;
+        } else if (g2 > g1) {
+            winnerName = team2.name;
+        } else {
+            return alert("يجب وجود فائز (في حال التعادل، أدخل نتيجة ركلات الترجيح)");
+        }
+
+        // --- نقل الفائز لربع النهائي ---
+        const qfIndex = Math.floor(matchIndex / 2);
+        const slotInQf = matchIndex % 2;
+        const qfMatches = document.querySelectorAll("#qf-list .match-card");
+        
+        if (qfMatches[qfIndex]) {
+            const targetSlot = qfMatches[qfIndex].querySelectorAll(".team-slot")[slotInQf];
+            targetSlot.innerText = winnerName;
+            targetSlot.classList.add("winner-highlight");
+            alert(`تم تأهل ${winnerName} وتحديث قائمة الهدافين بنجاح!`);
+        }
+    }
+
+    // 3. دالة النافذة المنبثقة لأسماء اللاعبين
+    function recordScorers(teamName, goalsCount) {
+        for (let i = 1; i <= goalsCount; i++) {
+            let playerName = prompt(`من سجل الهدف رقم (${i}) لفريق [ ${teamName} ]؟`);
+            if (playerName && playerName.trim() !== "") {
+                addGoal(playerName, teamName); // تنادي الدالة الموجودة في script.js
+            }
+        }
+    }
+
+    // تشغيل الدالة عند فتح الصفحة
+    window.onload = renderKnockout;
+</script>
+</body>
+</html>
