@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-
-<link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
-
-<title>نظام بطولة مركز شباب تانيس</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <title>نظام بطولة مركز شباب تانيس</title>
 </head>
 
 <body>
 <nav class="navbar">
     <div class="nav-links">
-        <a href="scorers.html" class="nav-btn">⚽ Scorers</a>
-        <a href="knockout.html" class="nav-btn" style="background: #ffd700; color: #000;">🏆 knockout </a>
-        <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
+        <a href="scorers.html" class="nav-btn">⚽ الهدافين</a>
+        <a href="knockout.html" class="nav-btn" style="background: #ffd700; color: #000;">🏆 الأدوار الإقصائية</a>
+        <a href="dashboard.html" class="nav-btn">📊 الإحصائيات</a>
     </div>
 
     <div class="logo-container">
@@ -23,28 +22,53 @@
     </div>
 </nav>
 
-<h1 class="title"> بطولة مركز شباب تانيس الرمضانية</h1>
+<h1 class="title">بطولة مركز شباب تانيس الرمضانية</h1>
 
-<!-- ================= إضافة فريق ================= -->
 <div class="card">
+    <h2>إضافة فريق جديد</h2>
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <select id="groupSelect" style="flex: 1;">
+            <option value="A">المجموعة A</option>
+            <option value="B">المجموعة B</option>
+            <option value="C">المجموعة C</option>
+            <option value="D">المجموعة D</option>
+            <option value="E">المجموعة E</option>
+            <option value="F">المجموعة F</option>
+            <option value="G">المجموعة G</option>
+            <option value="H">المجموعة H</option>
+        </select>
+        <input id="teamName" placeholder="اسم الفريق" style="flex: 2;">
+    </div>
+    <button onclick="addTeam()">إضافة الفريق</button>
+</div>
 
-<h2>إضافة فريق</h2>
+<div class="card" style="border-right: 5px solid #ffd700;">
+    <h2>إدخال نتيجة مباراة</h2>
+    <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">(اختر المجموعة أولاً لتظهر لك الفرق)</p>
+    
+    <select id="matchGroup" onchange="updateMatchTeamsList(this.value)">
+        <option value="" disabled selected>اختر المجموعة</option>
+        <option value="A">المجموعة A</option>
+        <option value="B">المجموعة B</option>
+        <option value="C">المجموعة C</option>
+        <option value="D">المجموعة D</option>
+        <option value="E">المجموعة E</option>
+        <option value="F">المجموعة F</option>
+        <option value="G">المجموعة G</option>
+        <option value="H">المجموعة H</option>
+    </select>
 
-<select id="groupSelect">
-<option value="A">المجموعة A</option>
-<option value="B">المجموعة B</option>
-<option value="C">المجموعة C</option>
-<option value="D">المجموعة D</option>
-<option value="E">المجموعة E</option>
-<option value="F">المجموعة F</option>
-<option value="G">المجموعة G</option>
-<option value="H">المجموعة H</option>
-</select>
+    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; align-items: center;">
+        <select id="team1Select" style="flex: 2; padding: 10px;"></select>
+        <input id="goals1" type="number" placeholder="أهداف" style="flex: 1; text-align: center;">
+        
+        <span style="font-weight: bold; color: #ffd700;">VS</span>
+        
+        <select id="team2Select" style="flex: 2; padding: 10px;"></select>
+        <input id="goals2" type="number" placeholder="أهداف" style="flex: 1; text-align: center;">
+    </div>
 
-<input id="teamName" placeholder="اسم الفريق">
-
-<button onclick="addTeam()">إضافة الفريق</button>
-
+    <button onclick="addMatch()" style="margin-top: 20px; background: #ffd700; color: #000;">تسجيل النتيجة</button>
 </div>
 
 <div class="card" style="border-top: 5px solid #ff4444;">
@@ -56,46 +80,16 @@
             <option value="B">المجموعة B</option>
             <option value="C">المجموعة C</option>
             <option value="D">المجموعة D</option>
-            <option value="E">المجموعة E</option>
-            <option value="F">المجموعة F</option>
-            <option value="G">المجموعة G</option>
-            <option value="H">المجموعة H</option>
+            <option value="D">المجموعة E</option>
+            <option value="D">المجموعة F</option>
+            <option value="D">المجموعة G</option>
+            <option value="D">المجموعة H</option>
         </select>
-        
-        <select id="deleteTeamSelect">
-            <option value="" disabled selected>اختر الفريق للحذف</option>
-        </select>
+        <select id="deleteTeamSelect" style="flex: 1;"></select>
     </div>
     <button onclick="confirmDeleteTeam()" style="background-color: #ff4444; margin-top: 10px;">حذف الفريق نهائياً</button>
 </div>
-<!-- ================= إدخال نتيجة ================= -->
-<div class="card">
 
-<h2>إدخال نتيجة مباراة</h2>
-
-<select id="matchGroup">
-<option value="A">المجموعة A</option>
-<option value="B">المجموعة B</option>
-<option value="C">المجموعة C</option>
-<option value="D">المجموعة D</option>
-<option value="E">المجموعة E</option>
-<option value="F">المجموعة F</option>
-<option value="G">المجموعة G</option>
-<option value="H">المجموعة H</option>
-</select>
-
-<input id="team1" placeholder="الفريق الأول">
-<input id="goals1" type="number" placeholder="الأهداف">
-
-<input id="team2" placeholder="الفريق الثاني">
-<input id="goals2" type="number" placeholder="الأهداف">
-
-<button onclick="addMatch()">تسجيل النتيجة</button>
-
-</div>
-
-
-<!-- ================= جدول الترتيب ================= -->
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h2>جدول الترتيب</h2>
@@ -105,32 +99,30 @@
     </div>
 
     <select onchange="renderTable(this.value)" id="currentGroupView">
-        <option value="A"> المجموعة A</option>
-        <option value="B"> المجموعة B</option>
-        <option value="C"> المجموعة C</option>
-        <option value="D"> المجموعة D</option>
-        <option value="E"> المجموعة E</option>
-        <option value="F"> المجموعة F</option>
-        <option value="G"> المجموعة G</option>
-        <option value="H"> المجموعة H</option>
+        <option value="A">المجموعة A</option>
+        <option value="B">المجموعة B</option>
+        <option value="C">المجموعة C</option>
+        <option value="D">المجموعة D</option>
+        <option value="D">المجموعة E</option>
+        <option value="D">المجموعة F</option>
+        <option value="D">المجموعة G</option>
+        <option value="D">المجموعة H</option>
     </select>
 
     <div id="tableToCapture" style="background: #111; padding: 20px; border-radius: 15px; border: 1px solid #ffd700;">
-        
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 id="groupTitle" style="color: #ffd700; margin: 0;">ترتيب المجموعة A</h3>
             <img src="logo.png" alt="Logo" style="height: 50px; width: auto; border-radius: 50%;">
         </div>
-
         <table>
             <thead>
                 <tr>
                     <th>م</th>
                     <th>الفريق</th>
                     <th>لعب</th>
-                    <th>فوز</th>
-                    <th>تعادل</th>
-                    <th>خسارة</th>
+                    <th>ف</th>
+                    <th>ت</th>
+                    <th>خ</th>
                     <th>له</th>
                     <th>عليه</th>
                     <th>نقاط</th>
@@ -138,12 +130,9 @@
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
-        
-        <p style="text-align: center; color: #555; font-size: 10px; margin-top: 10px;">نظام بطولة مركز شباب تانيس الرمضانية 🏆</p>
+        <p style="text-align: center; color: #555; font-size: 10px; margin-top: 15px;">نظام بطولة مركز شباب تانيس الرمضانية 🏆</p>
     </div>
 </div>
-
-<!-- ===== تحميل ملفات النظام ===== -->
 
 <script src="data/groups.js"></script>
 <script src="script.js"></script>

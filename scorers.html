@@ -2,36 +2,69 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>قائمة الهدافين - مركز شباب تانيس</title>
+    <title>إدارة الهدافين - مركز شباب تانيس</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* تحسينات إضافية خاصة بجدول الهدافين */
         .gold-row {
             background: linear-gradient(90deg, #ffd700, #b8860b) !important;
             color: black !important;
             font-weight: bold;
         }
-        .nav-link {
-            display: inline-block;
-            margin: 20px;
-            text-decoration: none;
-            background: #e50914;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
+        .controls-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
         }
-        .nav-link:hover {
-            background: #ff1e1e;
+        .controls-group input {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .btn-add { background-color: #28a745 !important; color: white; cursor: pointer; }
+        .btn-remove { background-color: #ff4444 !important; color: white; cursor: pointer; }
+        .info-msg {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            display: none; /* يظهر فقط عند وجود فرق مباراة أخيرة */
         }
     </style>
 </head>
 <body>
 
-    <a href="index.html" class="nav-link">العودة للوحة الإدارة</a>
+    <nav class="navbar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+        <a href="index.html" class="nav-btn">العودة للرئيسية</a>
+        <div class="logo-container">
+            <span class="logo-text">مركز شباب تانيس</span>
+            <img src="logo.png" alt="لوجو تانيس" class="main-logo" style="height: 50px;">
+        </div>
+    </nav>
 
-    <h1 class="title">ترتيب هدافي البطولة ⚽</h1>
+    <h1 class="title">إدارة وترتيب هدافي البطولة ⚽</h1>
+
+    <div class="card" style="width: 95%; max-width: 800px; margin-bottom: 20px;">
+        <div id="lastMatchInfo" class="info-msg"></div>
+        
+        <h2>تسجيل الأهداف</h2>
+        <div class="controls-group">
+            <input type="text" id="playerName" placeholder="اسم اللاعب" list="scorersSuggestions">
+            <input type="text" id="playerTeam" placeholder="اسم الفريق" list="teamsSuggestions">
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="addGoal()" class="btn-add">➕ إضافة هدف</button>
+            <button onclick="removeGoal()" class="btn-remove">➖ حذف هدف</button>
+        </div>
+        
+        <datalist id="scorersSuggestions"></datalist>
+        <datalist id="teamsSuggestions"></datalist>
+    </div>
 
     <div class="card" style="width: 95%; max-width: 800px;">
         <table>
@@ -43,21 +76,59 @@
                     <th>الأهداف</th>
                 </tr>
             </thead>
-            <tbody id="scorersTable">
-                </tbody>
+            <tbody id="scorersTable"></tbody>
         </table>
     </div>
 
-    <script src="script.js"></script>
-    
     <script>
-        function renderScorers() {
-            // جلب البيانات من LocalStorage
-            let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
-            
-            // ترتيب الهدافين من الأكثر إلى الأقل
-            scorers.sort((a, b) => b.goals - a.goals);
+        let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
 
+        function saveAndRender() {
+            // ترتيب الهدافين تنازلياً
+            scorers.sort((a, b) => b.goals - a.goals);
+            localStorage.setItem("scorers", JSON.stringify(scorers));
+            renderScorers();
+            updateAutocomplete();
+        }
+
+        function addGoal() {
+            const name = document.getElementById("playerName").value.trim();
+            const team = document.getElementById("playerTeam").value.trim();
+
+            if (!name) return alert("يرجى إدخال اسم اللاعب");
+            if (!team) return alert("يرجى اختيار أو كتابة اسم الفريق");
+
+            let player = scorers.find(p => p.name === name);
+
+            if (player) {
+                player.goals += 1;
+                player.team = team; // تحديث الفريق في حال انتقل للاعب لفريق آخر
+            } else {
+                scorers.push({ name: name, team: team, goals: 1 });
+            }
+
+            document.getElementById("playerName").value = "";
+            saveAndRender();
+        }
+
+        function removeGoal() {
+            const name = document.getElementById("playerName").value.trim();
+            if (!name) return alert("اكتب اسم اللاعب لخصم الهدف");
+
+            let playerIndex = scorers.findIndex(p => p.name === name);
+
+            if (playerIndex !== -1) {
+                scorers[playerIndex].goals -= 1;
+                if (scorers[playerIndex].goals <= 0) {
+                    scorers.splice(playerIndex, 1);
+                }
+                saveAndRender();
+            } else {
+                alert("اللاعب غير موجود");
+            }
+        }
+
+        function renderScorers() {
             const tableBody = document.getElementById("scorersTable");
             tableBody.innerHTML = "";
 
@@ -68,22 +139,63 @@
 
             scorers.forEach((p, i) => {
                 const tr = document.createElement("tr");
-                
-                // تمييز هداف البطولة (المركز الأول) بلون ذهبي
                 if (i === 0) tr.classList.add("gold-row");
 
                 tr.innerHTML = `
                     <td>${i + 1}</td>
                     <td>${p.name}</td>
                     <td>${p.team}</td>
-                    <td>${p.goals}</td>
+                    <td style="font-size: 1.2rem;">${p.goals}</td>
                 `;
                 tableBody.appendChild(tr);
             });
         }
 
-        // تشغيل الدالة عند تحميل الصفحة
-        window.onload = renderScorers;
+        function updateAutocomplete() {
+            // تحديث اقتراحات أسماء اللاعبين
+            const scorersList = document.getElementById("scorersSuggestions");
+            scorersList.innerHTML = "";
+            scorers.forEach(p => {
+                const option = document.createElement("option");
+                option.value = p.name;
+                scorersList.appendChild(option);
+            });
+
+            // تحديث اقتراحات الفرق
+            const teamsList = document.getElementById("teamsSuggestions");
+            // نحتفظ بفرق آخر مباراة في الأعلى
+            const lastTeams = JSON.parse(localStorage.getItem("lastMatchTeams")) || [];
+            const historyTeams = [...new Set(scorers.map(p => p.team))];
+            
+            // دمج فرق المباراة الأخيرة مع فرق التاريخ بدون تكرار
+            const allSuggestions = [...new Set([...lastTeams, ...historyTeams])];
+            
+            teamsList.innerHTML = "";
+            allSuggestions.forEach(t => {
+                const option = document.createElement("option");
+                option.value = t;
+                teamsList.appendChild(option);
+            });
+        }
+
+        // تشغيل الوظائف عند فتح الصفحة
+        window.onload = () => {
+            renderScorers();
+            
+            // جلب فرق المباراة الأخيرة المسجلة
+            const lastTeams = JSON.parse(localStorage.getItem("lastMatchTeams"));
+            const infoBox = document.getElementById("lastMatchInfo");
+
+            if (lastTeams && lastTeams.length === 2) {
+                infoBox.style.display = "block";
+                infoBox.innerHTML = `📍 مباراة مسجلة الآن: <b>${lastTeams[0]}</b> ضد <b>${lastTeams[1]}</b>`;
+                
+                // تعبئة خانة الفريق بأول فريق تلقائياً لتسهيل العمل
+                document.getElementById("playerTeam").value = lastTeams[0];
+            }
+
+            updateAutocomplete();
+        };
     </script>
 
 </body>
