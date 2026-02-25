@@ -95,55 +95,64 @@
 
     <script>
         function refreshDashboard() {
-            // جلب البيانات من LocalStorage
-            let matches = JSON.parse(localStorage.getItem("matches")) || [];
-            let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
-            let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
+    // 1. جلب البيانات الأساسية
+    let matchesLog = JSON.parse(localStorage.getItem("matches")) || [];
+    let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
+    let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
 
-            // 1. حساب عدد الفرق
-            let totalTeams = 0;
-            for (let g in tournament.groups) {
-                totalTeams += tournament.groups[g].length;
-            }
+    let totalPlayedMatches = 0;
+    let totalGoalsFromGroups = 0;
+    let totalTeams = 0;
 
-            // 2. حساب الأهداف
-            let totalGoals = matches.reduce((sum, m) => sum + (parseInt(m.homeGoals) || 0) + (parseInt(m.awayGoals) || 0), 0);
+    // 2. الجرد الشامل للمجموعات (لجلب البيانات المسجلة قديماً)
+    for (let groupName in tournament.groups) {
+        let teams = tournament.groups[groupName];
+        totalTeams += teams.length;
 
-            // 3. تحديد الهداف
-            let topScorerText = "-";
-            if (scorers.length > 0) {
-                scorers.sort((a, b) => b.goals - a.goals);
-                topScorerText = `${scorers[0].name} (${scorers[0].goals})`;
-            }
+        teams.forEach(team => {
+            // نجمع عدد مباريات كل فريق ونقسمها على 2 (لأن كل مباراة تجمع فريقين)
+            totalPlayedMatches += team.played;
+            // نجمع الأهداف التي سجلها كل فريق (له)
+            totalGoalsFromGroups += team.gf;
+        });
+    }
 
-            // 4. تحديث الأرقام
-            document.getElementById("matchesCount").innerText = matches.length;
-            document.getElementById("goalsCount").innerText = totalGoals;
-            document.getElementById("teamsCount").innerText = totalTeams;
-            document.getElementById("topScorer").innerText = topScorerText;
+    // تصحيح عدد المباريات (كل مباراة محسوبة مرتين لكل فريق)
+    let finalMatchesCount = totalPlayedMatches / 2;
 
-            // 5. عرض آخر 5 مباريات
-            const recentBody = document.getElementById("recentMatchesBody");
-            recentBody.innerHTML = "";
-            
-            // نأخذ آخر 5 مباريات مسجلة ونعكسهم ليظهر الأحدث أولاً
-            const latest = matches.slice(-5).reverse();
+    // 3. تحديد الهداف
+    let topScorerText = "-";
+    if (scorers.length > 0) {
+        scorers.sort((a, b) => b.goals - a.goals);
+        topScorerText = `${scorers[0].name} (${scorers[0].goals})`;
+    }
 
-            if (latest.length === 0) {
-                recentBody.innerHTML = "<tr><td colspan='3'>لا توجد مباريات مسجلة بعد</td></tr>";
-            } else {
-                latest.forEach(m => {
-                    recentBody.innerHTML += `
-                        <tr>
-                            <td>${m.home} vs ${m.away}</td>
-                            <td style="font-weight: bold; color: #ffd700;">${m.homeGoals} - ${m.awayGoals}</td>
-                            <td>${m.group || 'إقصائي'}</td>
-                        </tr>
-                    `;
-                });
-            }
-        }
+    // 4. تحديث الأرقام في الواجهة
+    // نستخدم الأكبر بين (سجل المجموعات) و (سجل المباريات المستقل) لضمان عدم ضياع أي بيانات
+    document.getElementById("matchesCount").innerText = Math.max(finalMatchesCount, matchesLog.length);
+    document.getElementById("goalsCount").innerText = totalGoalsFromGroups;
+    document.getElementById("teamsCount").innerText = totalTeams;
+    document.getElementById("topScorer").innerText = topScorerText;
 
+    // 5. عرض سجل المباريات (المباريات التي تم تسجيلها في السجل المخصص فقط)
+    const recentBody = document.getElementById("recentMatchesBody");
+    recentBody.innerHTML = "";
+    const latest = matchesLog.slice(-5).reverse();
+
+    if (latest.length === 0) {
+        recentBody.innerHTML = "<tr><td colspan='3'>سجل المباريات التفصيلي فارغ، لكن الإحصائيات محسوبة من الجداول</td></tr>";
+    } else {
+        latest.forEach(m => {
+            recentBody.innerHTML += `
+                <tr>
+                    <td>${m.home} vs ${m.away}</td>
+                    <td style="font-weight: bold; color: #ffd700;">${m.homeGoals} - ${m.awayGoals}</td>
+                    <td style="color: #00ffcc;">${m.group}</td>
+                </tr>
+            `;
+        });
+    }
+}
         window.onload = refreshDashboard;
     </script>
 </body>
