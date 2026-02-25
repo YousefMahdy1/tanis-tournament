@@ -27,7 +27,6 @@
         .stat-card h3 { margin: 0; font-size: 1.1rem; color: #ffd700; }
         .stat-card p { font-size: 2.2rem; margin: 10px 0 0 0; font-weight: bold; color: white; }
 
-        /* ستايل سجل المباريات الأخير */
         .recent-matches {
             max-width: 1100px;
             margin: 30px auto;
@@ -88,71 +87,69 @@
                     <th>المجموعة</th>
                 </tr>
             </thead>
-            <tbody id="recentMatchesBody">
-                </tbody>
+            <tbody id="recentMatchesBody"></tbody>
         </table>
     </div>
 
     <script>
         function refreshDashboard() {
-    // 1. جلب البيانات الأساسية
-    let matchesLog = JSON.parse(localStorage.getItem("matches")) || [];
-    let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
-    let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
+            // 1. جلب البيانات
+            let matchesLog = JSON.parse(localStorage.getItem("matches")) || [];
+            let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
+            let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
 
-    let totalPlayedMatches = 0;
-    let totalGoalsFromGroups = 0;
-    let totalTeams = 0;
+            let totalPlayedFromGroups = 0;
+            let totalGoalsFromGroups = 0;
+            let totalTeams = 0;
 
-    // 2. الجرد الشامل للمجموعات (لجلب البيانات المسجلة قديماً)
-    for (let groupName in tournament.groups) {
-        let teams = tournament.groups[groupName];
-        totalTeams += teams.length;
+            // 2. الجرد الشامل للمجموعات
+            for (let groupName in tournament.groups) {
+                let teams = tournament.groups[groupName];
+                totalTeams += teams.length;
+                teams.forEach(team => {
+                    totalPlayedFromGroups += (team.played || 0);
+                    totalGoalsFromGroups += (team.gf || 0);
+                });
+            }
 
-        teams.forEach(team => {
-            // نجمع عدد مباريات كل فريق ونقسمها على 2 (لأن كل مباراة تجمع فريقين)
-            totalPlayedMatches += team.played;
-            // نجمع الأهداف التي سجلها كل فريق (له)
-            totalGoalsFromGroups += team.gf;
-        });
-    }
+            // منع ظهور الكسور باستخدام Math.floor
+            let calculatedMatches = Math.floor(totalPlayedFromGroups / 2);
 
-    // تصحيح عدد المباريات (كل مباراة محسوبة مرتين لكل فريق)
-    let finalMatchesCount = totalPlayedMatches / 2;
+            // 3. تحديد الهداف
+            let topScorerText = "-";
+            if (scorers.length > 0) {
+                // ترتيب نسخة من الهدافين لعدم التأثير على الأصل
+                let sortedScorers = [...scorers].sort((a, b) => b.goals - a.goals);
+                topScorerText = `${sortedScorers[0].name} (${sortedScorers[0].goals})`;
+            }
 
-    // 3. تحديد الهداف
-    let topScorerText = "-";
-    if (scorers.length > 0) {
-        scorers.sort((a, b) => b.goals - a.goals);
-        topScorerText = `${scorers[0].name} (${scorers[0].goals})`;
-    }
+            // 4. التحديث النهائي للواجهة
+            // نأخذ الأكبر بين الرقم المحسوب من الفرق وبين سجل المباريات الفعلي
+            document.getElementById("matchesCount").innerText = Math.max(calculatedMatches, matchesLog.length);
+            document.getElementById("goalsCount").innerText = totalGoalsFromGroups;
+            document.getElementById("teamsCount").innerText = totalTeams;
+            document.getElementById("topScorer").innerText = topScorerText;
 
-    // 4. تحديث الأرقام في الواجهة
-    // نستخدم الأكبر بين (سجل المجموعات) و (سجل المباريات المستقل) لضمان عدم ضياع أي بيانات
-    document.getElementById("matchesCount").innerText = Math.max(finalMatchesCount, matchesLog.length);
-    document.getElementById("goalsCount").innerText = totalGoalsFromGroups;
-    document.getElementById("teamsCount").innerText = totalTeams;
-    document.getElementById("topScorer").innerText = topScorerText;
+            // 5. عرض سجل المباريات الأخير
+            const recentBody = document.getElementById("recentMatchesBody");
+            recentBody.innerHTML = "";
+            const latest = matchesLog.slice(-5).reverse();
 
-    // 5. عرض سجل المباريات (المباريات التي تم تسجيلها في السجل المخصص فقط)
-    const recentBody = document.getElementById("recentMatchesBody");
-    recentBody.innerHTML = "";
-    const latest = matchesLog.slice(-5).reverse();
+            if (latest.length === 0) {
+                recentBody.innerHTML = "<tr><td colspan='3'>لا يوجد سجل مباريات تفصيلي متاح حالياً</td></tr>";
+            } else {
+                latest.forEach(m => {
+                    recentBody.innerHTML += `
+                        <tr>
+                            <td>${m.home} vs ${m.away}</td>
+                            <td style="font-weight: bold; color: #ffd700;">${m.homeGoals} - ${m.awayGoals}</td>
+                            <td style="color: #00ffcc;">${m.group || "غير محدد"}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
 
-    if (latest.length === 0) {
-        recentBody.innerHTML = "<tr><td colspan='3'>سجل المباريات التفصيلي فارغ، لكن الإحصائيات محسوبة من الجداول</td></tr>";
-    } else {
-        latest.forEach(m => {
-            recentBody.innerHTML += `
-                <tr>
-                    <td>${m.home} vs ${m.away}</td>
-                    <td style="font-weight: bold; color: #ffd700;">${m.homeGoals} - ${m.awayGoals}</td>
-                    <td style="color: #00ffcc;">${m.group}</td>
-                </tr>
-            `;
-        });
-    }
-}
         window.onload = refreshDashboard;
     </script>
 </body>
