@@ -46,6 +46,7 @@ function updateMatchTeamsList(group) {
 }
 
 /* ================= تسجيل نتيجة مباراة (محدث للانتقال للهدافين) ================= */
+/* استبدل دالة addMatch في ملف app.js بهذا الكود */
 function addMatch() {
     const group = document.getElementById("matchGroup").value;
     const t1Name = document.getElementById("team1Select").value;
@@ -55,24 +56,31 @@ function addMatch() {
 
     if (!group) return alert("اختر المجموعة أولاً");
     if (!t1Name || !t2Name || isNaN(g1) || isNaN(g2)) return alert("أكمل بيانات النتيجة والفرق");
-    if (t1Name === t2Name) return alert("لا يمكن للفريق اللعب ضد نفسه!");
 
+    // 1. معالجة النقاط في الجدول (الدالة الموجودة مسبقاً)
     processMatch(group, t1Name, g1, t2Name, g2);
+    
+    // 2. حفظ المباراة في سجل المباريات العام للـ Dashboard
+    let allMatches = JSON.parse(localStorage.getItem("matches")) || [];
+    allMatches.push({
+        home: t1Name,
+        away: t2Name,
+        homeGoals: g1,
+        awayGoals: g2,
+        group: group,
+        date: new Date().toLocaleString()
+    });
+    localStorage.setItem("matches", JSON.stringify(allMatches));
+
+    // 3. حفظ آخر فريقين لصفحة الهدافين
+    localStorage.setItem("lastMatchTeams", JSON.stringify([t1Name, t2Name]));
+
     saveTournament();
     renderTable(group);
-    
-    // حفظ أسماء الفريقين لنقلهم لصفحة الهدافين
-    localStorage.setItem("lastMatchTeams", JSON.stringify([t1Name, t2Name]));
-    
-    document.getElementById("goals1").value = "";
-    document.getElementById("goals2").value = "";
-    
-    alert(`تم تسجيل النتيجة بنجاح! سجل هدافي مباراة ${t1Name} و ${t2Name}`);
-    
-    // الانتقال لصفحة الهدافين
+
+    alert(`تم تسجيل المباراة! جاري الانتقال لتسجيل الهدافين...`);
     window.location.href = "scorers.html";
 }
-
 /* ================= معالجة وترتيب البيانات ================= */
 function processMatch(group, team1Name, goals1, team2Name, goals2) {
     const teams = tournament.groups[group];

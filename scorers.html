@@ -91,42 +91,53 @@
             updateAutocomplete();
         }
 
-        function addGoal() {
-            const name = document.getElementById("playerName").value.trim();
-            const team = document.getElementById("playerTeam").value.trim();
+       /* --- تحديث دالة إضافة هدف --- */
+function addGoal() {
+    const name = document.getElementById("playerName").value.trim();
+    const team = document.getElementById("playerTeam").value.trim();
 
-            if (!name) return alert("يرجى إدخال اسم اللاعب");
-            if (!team) return alert("يرجى اختيار أو كتابة اسم الفريق");
+    if (!name || !team) return alert("يرجى إدخال اسم اللاعب واسم الفريق");
 
-            let player = scorers.find(p => p.name === name);
+    // التعديل السحري هنا: البحث بالاسم والفريق معاً
+    let player = scorers.find(p => p.name === name && p.team === team);
 
-            if (player) {
-                player.goals += 1;
-                player.team = team; // تحديث الفريق في حال انتقل للاعب لفريق آخر
-            } else {
-                scorers.push({ name: name, team: team, goals: 1 });
-            }
+    if (player) {
+        // إذا وجدنا نفس الاسم في نفس الفريق، نزيد أهدافه
+        player.goals += 1;
+    } else {
+        // إذا كان الاسم جديداً أو نفس الاسم لكن بفريق مختلف، نسجله كلاعب جديد
+        scorers.push({ 
+            name: name, 
+            team: team, 
+            goals: 1 
+        });
+    }
 
-            document.getElementById("playerName").value = "";
-            saveAndRender();
+    document.getElementById("playerName").value = "";
+    // لا نمسح اسم الفريق هنا ليسهل عليك تسجيل أهداف أخرى لنفس الفريق بسرعة
+    saveAndRender();
+}
+
+/* --- تحديث دالة حذف هدف --- */
+function removeGoal() {
+    const name = document.getElementById("playerName").value.trim();
+    const team = document.getElementById("playerTeam").value.trim();
+
+    if (!name || !team) return alert("يرجى إدخال الاسم والفريق لخصم الهدف");
+
+    // البحث عن اللاعب المحدد بدقة
+    let playerIndex = scorers.findIndex(p => p.name === name && p.team === team);
+
+    if (playerIndex !== -1) {
+        scorers[playerIndex].goals -= 1;
+        if (scorers[playerIndex].goals <= 0) {
+            scorers.splice(playerIndex, 1);
         }
-
-        function removeGoal() {
-            const name = document.getElementById("playerName").value.trim();
-            if (!name) return alert("اكتب اسم اللاعب لخصم الهدف");
-
-            let playerIndex = scorers.findIndex(p => p.name === name);
-
-            if (playerIndex !== -1) {
-                scorers[playerIndex].goals -= 1;
-                if (scorers[playerIndex].goals <= 0) {
-                    scorers.splice(playerIndex, 1);
-                }
-                saveAndRender();
-            } else {
-                alert("اللاعب غير موجود");
-            }
-        }
+        saveAndRender();
+    } else {
+        alert("لم يتم العثور على هذا اللاعب في الفريق المحدد");
+    }
+}
 
         function renderScorers() {
             const tableBody = document.getElementById("scorersTable");

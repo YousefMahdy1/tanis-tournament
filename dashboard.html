@@ -6,13 +6,12 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* تحسين مظهر كروت الإحصائيات */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
         }
         .stat-card {
@@ -22,88 +21,130 @@
             text-align: center;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
             border: 1px solid #ffd700;
+            transition: transform 0.3s;
         }
-        .stat-card h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: #ffd700;
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card h3 { margin: 0; font-size: 1.1rem; color: #ffd700; }
+        .stat-card p { font-size: 2.2rem; margin: 10px 0 0 0; font-weight: bold; color: white; }
+
+        /* ستايل سجل المباريات الأخير */
+        .recent-matches {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
-        .stat-card p {
-            font-size: 2rem;
-            margin: 10px 0 0 0;
-            font-weight: bold;
+        .recent-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
         }
-        .nav-btn {
-            display: inline-block;
-            margin: 20px;
-            text-decoration: none;
-            color: #000;
-            background: #ffd700;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
+        .recent-table th { background: #ffd700; color: black; padding: 10px; }
+        .recent-table td { padding: 12px; border-bottom: 1px solid #444; text-align: center; color: white; }
     </style>
 </head>
 <body>
-<div class="nav-bar">
-    <a href="index.html" class="nav-btn">الرئيسية</a>
-    <a href="knockout.html" class="nav-btn">شجرة الإقصائيات</a>
-</div>
-    
-    
+
+    <nav class="navbar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+        <div>
+            <a href="index.html" class="nav-btn">الرئيسية</a>
+            <a href="knockout.html" class="nav-btn" style="background: #28a745; color: white;">شجرة الإقصائيات</a>
+        </div>
+        <div class="logo-container">
+            <span class="logo-text">مركز شباب تانيس</span>
+            <img src="logo.png" alt="Logo" style="height: 50px;">
+        </div>
+    </nav>
+
     <h1 class="title">إحصائيات البطولة الرمضانية 📊</h1>
 
     <div class="stats">
         <div class="stat-card">
-            <h3>المباريات</h3>
-            <p id="matches">0</p>
+            <h3>إجمالي المباريات</h3>
+            <p id="matchesCount">0</p>
         </div>
         <div class="stat-card">
-            <h3>الأهداف</h3>
-            <p id="goals">0</p>
+            <h3>إجمالي الأهداف</h3>
+            <p id="goalsCount">0</p>
         </div>
         <div class="stat-card">
             <h3>الفرق المشاركة</h3>
-            <p id="teams">0</p>
+            <p id="teamsCount">0</p>
         </div>
         <div class="stat-card">
-            <h3>هداف البطولة</h3>
-            <p id="topScorer" style="font-size: 1.5rem;">-</p>
+            <h3>هداف البطولة 🏆</h3>
+            <p id="topScorer" style="font-size: 1.4rem; color: #ffd700;">-</p>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="recent-matches">
+        <h2 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">آخر النتائج المسجلة ⚽</h2>
+        <table class="recent-table">
+            <thead>
+                <tr>
+                    <th>المباراة</th>
+                    <th>النتيجة</th>
+                    <th>المجموعة</th>
+                </tr>
+            </thead>
+            <tbody id="recentMatchesBody">
+                </tbody>
+        </table>
+    </div>
+
     <script>
-        // سنستخدم الدالة المحدثة التي كتبناها في script.js
-        // ولكن سنضيف تأكيداً هنا لضمان عملها بشكل مستقل
         function refreshDashboard() {
+            // جلب البيانات من LocalStorage
             let matches = JSON.parse(localStorage.getItem("matches")) || [];
             let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
             let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
 
-            // 1. حساب عدد الفرق من كافة المجموعات
+            // 1. حساب عدد الفرق
             let totalTeams = 0;
             for (let g in tournament.groups) {
                 totalTeams += tournament.groups[g].length;
             }
 
-            // 2. حساب الأهداف بدقة
-            let totalGoals = matches.reduce((sum, m) => sum + (Number(m.homeGoals) || 0) + (Number(m.awayGoals) || 0), 0);
+            // 2. حساب الأهداف
+            let totalGoals = matches.reduce((sum, m) => sum + (parseInt(m.homeGoals) || 0) + (parseInt(m.awayGoals) || 0), 0);
 
-            // 3. ترتيب الهدافين
-            let top = scorers.sort((a, b) => b.goals - a.goals)[0];
+            // 3. تحديد الهداف
+            let topScorerText = "-";
+            if (scorers.length > 0) {
+                scorers.sort((a, b) => b.goals - a.goals);
+                topScorerText = `${scorers[0].name} (${scorers[0].goals})`;
+            }
 
-            // 4. تحديث الواجهة
-            document.getElementById("matches").innerText = matches.length;
-            document.getElementById("goals").innerText = totalGoals;
-            document.getElementById("teams").innerText = totalTeams;
-            document.getElementById("topScorer").innerText = top ? top.name : "-";
+            // 4. تحديث الأرقام
+            document.getElementById("matchesCount").innerText = matches.length;
+            document.getElementById("goalsCount").innerText = totalGoals;
+            document.getElementById("teamsCount").innerText = totalTeams;
+            document.getElementById("topScorer").innerText = topScorerText;
+
+            // 5. عرض آخر 5 مباريات
+            const recentBody = document.getElementById("recentMatchesBody");
+            recentBody.innerHTML = "";
+            
+            // نأخذ آخر 5 مباريات مسجلة ونعكسهم ليظهر الأحدث أولاً
+            const latest = matches.slice(-5).reverse();
+
+            if (latest.length === 0) {
+                recentBody.innerHTML = "<tr><td colspan='3'>لا توجد مباريات مسجلة بعد</td></tr>";
+            } else {
+                latest.forEach(m => {
+                    recentBody.innerHTML += `
+                        <tr>
+                            <td>${m.home} vs ${m.away}</td>
+                            <td style="font-weight: bold; color: #ffd700;">${m.homeGoals} - ${m.awayGoals}</td>
+                            <td>${m.group || 'إقصائي'}</td>
+                        </tr>
+                    `;
+                });
+            }
         }
 
-        // تشغيل التحديث عند التحميل
         window.onload = refreshDashboard;
     </script>
-
 </body>
 </html>
