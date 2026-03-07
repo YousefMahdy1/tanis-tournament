@@ -120,7 +120,7 @@ body {
 
 .round-header { 
     background: var(--main-red); 
-    font-size: 0.85rem; 
+    font-size: .88rem; 
     text-align: center; 
     padding: 5px; 
     font-weight: bold; 
@@ -136,7 +136,7 @@ body {
 }
 
 .team-slot span { 
-    font-size: 0.85rem; 
+    font-size: 0.86rem; 
     font-weight: 1000; 
     white-space: nowrap;
     overflow: hidden;
