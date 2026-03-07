@@ -1,7 +1,7 @@
 /* الإعدادات العامة والمتغيرات */
 :root {
-    --card-width: 220px;
-    --card-height: 140px;
+    --card-width: 200px; /* تقليل العرض قليلاً ليناسب الجوال */
+    --card-height: 130px;
     --main-red: #b30000;
     --gold: #ffd700;
     --bg-dark: #0d0d0d;
@@ -12,30 +12,36 @@ body {
     font-family: 'Cairo', sans-serif; 
     color: white; 
     margin: 0; 
-    overflow-x: auto; 
+    overflow-x: auto; /* السماح بالتمرير الأفقي للجسم بالكامل */
 }
 
-/* شريط التنقل */
+/* شريط التنقل - محسّن للجوال */
 .nav-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 10px 15px;
     background: #111;
     border-bottom: 3px solid var(--main-red);
     position: sticky;
     top: 0;
     z-index: 1000;
+    flex-wrap: wrap; /* للسماح بالالتفاف في الشاشات الصغيرة جداً */
+    gap: 10px;
 }
 
-.main-title { margin:0; font-size: 1.2rem; }
+.page-title { 
+    margin: 0; 
+    font-size: 1rem; 
+    white-space: nowrap; 
+}
 
 .nav-btn { 
-    padding: 8px 15px; 
+    padding: 6px 12px; 
     text-decoration: none; 
     border-radius: 6px; 
     font-weight: bold; 
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     background: var(--gold); 
     color: black;
 }
@@ -44,36 +50,43 @@ body {
 .controls-bar { 
     display: flex; 
     justify-content: center; 
-    padding: 15px; 
+    padding: 10px; 
     background: #111; 
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .btn-action { 
-    padding: 10px 20px; 
+    padding: 8px 15px; 
     border: none; 
     border-radius: 5px; 
     cursor: pointer; 
     font-family: 'Cairo'; 
     font-weight: bold; 
     color: white; 
+    font-size: 0.8rem;
 }
-.btn-blue { background: #007bff; }
-.btn-red { background: #dc3545; }
 
-/* منطقة الشجرة */
-.capture-bg { background: #000; }
-
+/* منطقة الشجرة - الحل الذهبي للـ Responsive */
 .bracket-container { 
     display: flex; 
-    justify-content: center; 
-    padding: 40px 10px; 
-    gap: 15px; 
-    min-width: 1100px; /* لضمان عدم تداخل الأعمدة */
+    justify-content: flex-start; /* تبدأ من اليمين للسماح بالسكرول */
+    padding: 20px; 
+    gap: 10px; 
+    width: max-content; /* تجعل الحاوية بعرض محتواها الداخلي */
+    margin: 0 auto;
+    min-height: 100vh;
 }
 
-.bracket-side { display: flex; gap: 20px; flex: 1; justify-content: center; }
-.side-left { flex-direction: row-reverse; }
+.bracket-side { 
+    display: flex; 
+    gap: 15px; 
+    align-items: stretch;
+}
+
+.side-left { 
+    flex-direction: row-reverse; 
+}
 
 .bracket-column { 
     display: flex; 
@@ -87,115 +100,108 @@ body {
     flex-direction: column; 
     justify-content: center; 
     align-items: center; 
-    width: 240px;
+    width: 220px;
+    margin: 0 10px;
 }
 
-/* كارت المباراة - حجم ثابت تماماً */
+/* كارت المباراة */
 .match-card { 
     background: #161616; 
     border: 1px solid #333; 
     border-radius: 8px; 
     width: var(--card-width); 
-    height: var(--card-height); 
-    margin: 8px 0; 
+    min-height: var(--card-height); 
+    margin: 10px 0; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.6); 
     overflow: hidden; 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    flex-shrink: 0;
 }
-
-.final-card { border: 2px solid var(--gold); height: 160px; }
 
 .round-header { 
     background: var(--main-red); 
-    font-size: 0.95rem; 
+    font-size: 0.85rem; 
     text-align: center; 
-    padding: 4px; 
+    padding: 5px; 
     font-weight: bold; 
 }
 
-.gold-bg { background: var(--gold) !important; color: black !important; }
-.gold-border { border-color: var(--gold) !important; }
-
 .team-slot { 
-    padding: 5px 10px; 
+    padding: 8px; 
     border-bottom: 1px solid #252525; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    height: 38px;
+    min-height: 40px;
 }
 
 .team-slot span { 
-    font-size: .97rem; 
-    font-weight: 800; 
+    font-size: 0.85rem; 
+    font-weight: 1000; 
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 130px;
+    max-width: 150px;
 }
 
-/* منطقة النتيجة */
-.score-box {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    min-width: 65px;
-    justify-content: flex-end;
-}
-
+/* المدخلات - حجم مناسب للمس بالإصبع */
 .score-input { 
-    width: 30px; 
-    height: 26px; 
+    width: 35px; 
+    height: 30px; 
     background: #000; 
     color: var(--gold); 
     border: 1px solid #444; 
     text-align: center; 
     font-weight: 900; 
     border-radius: 4px; 
+    font-size: 1rem;
 }
 
 .penalties-input { 
-    width: 24px; 
-    height: 22px; 
+    width: 28px; 
+    height: 25px; 
     background: #333; 
     color: #ff4d4d; 
     border: 1px solid #ff4d4d; 
     text-align: center; 
-    font-size: 0.65rem; 
+    font-size: 0.7rem; 
     display: none; 
 }
 
-/* أزرار التأكيد داخل الكروت */
+/* زر الفوز */
 .win-btn { 
     width: 100%; 
-    height: 15px; 
+    height: 25px; 
     background: #28a745; 
     border: none; 
-    cursor: pointer; 
+    cursor: pointer;
+    color: white;
+    font-size: 0.7rem;
+    font-family: 'Cairo';
 }
-.gold-btn-action { background: var(--gold); height: 22px; }
+
 
 /* اسم البطل */
 #winner-name { 
     background: linear-gradient(145deg, #ffd700, #b8860b); 
     color: black; 
-    padding: 12px; 
+    padding: 10px; 
     font-weight: 900; 
-    font-size: 1.3rem; 
+    font-size: 1.1rem; 
     border-radius: 10px; 
     text-align: center; 
     margin-top: 15px;
-    width: 85%;
+    width: 100%;
     border: 2px solid white; 
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
-/* جعل التصميم متجاوباً على الجوال */
-@media (max-width: 768px) {
+/* تحسينات اللمس للهواتف */
+@media (pointer: coarse) {
+    .score-input, .win-btn {
+        min-height: 35px;
+    }
     .bracket-container {
-        transform: scale(0.9); /* تصغير الشجرة قليلاً لتناسب الشاشة */
-        transform-origin: top center;
+        padding-bottom: 50px; /* مساحة إضافية للسكرول */
     }
 }
