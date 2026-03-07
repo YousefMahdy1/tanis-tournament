@@ -76,3 +76,26 @@ td:nth-child(2){
     color:#000;
     font-weight:900;
 }
+/* تمييز مراكز التأهل (أول وصيف) */
+#tableBody tr:nth-child(1) {
+    border-right: 5px solid #ffd700; /* ذهبي للمتصدر */
+    background: rgba(255, 215, 0, 0.05);
+}
+
+#tableBody tr:nth-child(2) {
+    border-right: 5px solid #c0c0c0; /* فضي للوصيف */
+    background: rgba(192, 192, 192, 0.05);
+}
+
+/* تحسين شكل الجدول عند التحميل كصورة */
+.standings table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #111;
+    color: #fff;
+}
+
+.standings th {
+    background: #b30000;
+    padding: 12px;
+}

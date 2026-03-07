@@ -92,26 +92,7 @@
     </div>
 
     <script>
-        // 1. تحديث إحصائيات الفرق في الـ localStorage (لصفحة الهدافين والإحصائيات)
-        function updateTeamStats(teamName, goalsFor, goalsAgainst) {
-            let data = JSON.parse(localStorage.getItem("tournament"));
-            if (!data || !data.groups) return;
-            
-            let found = false;
-            for (let group in data.groups) {
-                let team = data.groups[group].find(t => t.name === teamName);
-                if (team) {
-                    team.played = (team.played || 0) + 1;
-                    team.gf = (team.gf || 0) + goalsFor;
-                    team.ga = (team.ga || 0) + goalsAgainst;
-                    found = true;
-                    break;
-                }
-            }
-            if(found) localStorage.setItem("tournament", JSON.stringify(data));
-        }
-
-        // 2. دالة الحفظ العام لحالة الشجرة
+        // دالة حفظ حالة الشجرة يدوياً بعيداً عن أرقام المجموعات
         function saveState() {
             const state = { 
                 names: {}, 
@@ -123,7 +104,6 @@
             localStorage.setItem("tanis_bracket_data", JSON.stringify(state));
         }
 
-        // 3. دالة استرجاع الحالة
         function loadState() {
             const data = JSON.parse(localStorage.getItem("tanis_bracket_data"));
             if(!data) return;
@@ -135,47 +115,45 @@
                 if(el) { 
                     el.value = data.scores[id]; 
                     let parts = id.split('-'); 
-                    if(parts.length >= 2) showPens(parts[0], parts[1]); 
+                    if(parts.length >= 2) showPens(parts[0], parts[1], false); 
                 }
             }
             document.getElementById("winner-name").innerText = data.winner || "؟";
         }
 
-        // 4. منطق ركلات الترجيح
-        function showPens(stage, i) {
-            const g0 = document.getElementById(`${stage}-${i}-g0`).value;
-            const g1 = document.getElementById(`${stage}-${i}-g1`).value;
+        function showPens(stage, i, shouldSave = true) {
+            const g0 = document.getElementById(`${stage}-${i}-g0`)?.value;
+            const g1 = document.getElementById(`${stage}-${i}-g1`)?.value;
             const pens = document.querySelectorAll(`.i-${stage}-${i}`);
             if(g0 !== "" && g1 !== "" && g0 === g1) {
                 pens.forEach(p => p.style.display = "inline-block");
             } else {
                 pens.forEach(p => p.style.display = "none");
             }
-            saveState();
+            if(shouldSave) saveState();
         }
 
-        // 5. معالجة النتائج وتصعيد الفائز
-        function handleProcess(n1, n2, g1, g2, p1, p2) {
+        // دالة تحديد الفائز فقط دون تعديل إحصائيات المجموعات
+        function getWinner(n1, n2, g1, g2, p1, p2) {
             const s1 = parseInt(g1) || 0, s2 = parseInt(g2) || 0;
-            updateTeamStats(n1, s1, s2);
-            updateTeamStats(n2, s2, s1);
             if (s1 > s2) return n1;
             if (s2 > s1) return n2;
-            return (parseInt(p1) || 0) > (parseInt(p2) || 0) ? n1 : n2;
+            const pen1 = parseInt(p1) || 0, pen2 = parseInt(p2) || 0;
+            return pen1 > pen2 ? n1 : n2;
         }
 
         function processR16(i, n1, n2) {
             const g0 = document.getElementById(`m16-${i}-g0`).value;
             const g1 = document.getElementById(`m16-${i}-g1`).value;
-            if(g0 === "" || g1 === "") return;
+            if(g0 === "" || g1 === "") return alert("أدخل النتيجة أولاً");
             
-            const w = handleProcess(n1, n2, g0, g1, 
+            const w = getWinner(n1, n2, g0, g1, 
                 document.getElementById(`m16-${i}-p0`).value, 
                 document.getElementById(`m16-${i}-p1`).value);
             
             document.getElementById(`qf-${Math.floor(i/2)}-s${i%2}`).innerText = w;
             saveState();
-            window.location.href = "scorers.html";
+            alert("صعد فريق: " + w);
         }
 
         function processMatch(stage, i) {
@@ -184,18 +162,22 @@
             const g0 = document.getElementById(`${stage}-${i}-g0`).value;
             const g1 = document.getElementById(`${stage}-${i}-g1`).value;
             
-            if(n0 === "؟" || g0 === "" || g1 === "") return;
+            if(n0 === "؟" || g0 === "" || g1 === "") return alert("البيانات غير مكتملة");
             
-            const w = handleProcess(n0, n1, g0, g1, 
+            const w = getWinner(n0, n1, g0, g1, 
                 document.getElementById(`${stage}-${i}-p0`).value, 
                 document.getElementById(`${stage}-${i}-p1`).value);
             
-            const next = (stage === 'qf') ? 'sf' : 'final';
-            const targetId = (next === 'final') ? `final-s${i}` : `${next}-${Math.floor(i/2)}-s${i%2}`;
+            let targetId;
+            if(stage === 'qf') {
+                targetId = (i < 2) ? `sf-0-s${i%2}` : `sf-1-s${i%2}`;
+            } else if(stage === 'sf') {
+                targetId = `final-s${i}`;
+            }
             
             if(document.getElementById(targetId)) document.getElementById(targetId).innerText = w;
             saveState();
-            window.location.href = "scorers.html";
+            alert("صعد فريق: " + w);
         }
 
         function processFinal() {
@@ -203,18 +185,17 @@
             const n1 = document.getElementById(`final-s1`).innerText;
             const g0 = document.getElementById(`f-g0`).value;
             const g1 = document.getElementById(`f-g1`).value;
-            if(g0 === "" || g1 === "") return;
+            if(g0 === "" || g1 === "") return alert("أدخل نتيجة النهائي");
             
-            const w = handleProcess(n0, n1, g0, g1, 
+            const w = getWinner(n0, n1, g0, g1, 
                 document.getElementById(`f-p0`).value, 
                 document.getElementById(`f-p1`).value);
                 
             document.getElementById("winner-name").innerText = w;
             saveState();
-            window.location.href = "scorers.html";
+            alert("بطل البطولة هو: " + w);
         }
 
-        // 6. رسم دور الـ 16 بناءً على المجموعات
         function renderKnockout() {
             const data = JSON.parse(localStorage.getItem("tournament"));
             if(!data) return;
@@ -222,11 +203,11 @@
             let q = {};
             ["A","B","C","D","E","F","G","H"].forEach(g => {
                 let t = data.groups[g] || [];
+                // ترتيب المجموعات برمجياً للعرض فقط
                 t.sort((a,b) => (b.points||0) - (a.points||0) || (b.gf-b.ga) - (a.gf-a.ga));
                 q[g] = { first: t[0] || {name:`أول ${g}`}, second: t[1] || {name:`وصيف ${g}`} };
             });
 
-            // توزيع المقص (الجناح الأيمن ثم الأيسر)
             const r16Matches = [
                 [q.A.first, q.C.second], [q.F.first, q.H.second], [q.G.first, q.E.second], [q.D.first, q.B.second],
                 [q.B.first, q.D.second], [q.C.first, q.A.second], [q.E.first, q.G.second], [q.H.first, q.F.second]
@@ -246,7 +227,7 @@
                 if(i < 4) r16R.innerHTML += html; else r16L.innerHTML += html;
             });
             
-            loadState(); // استرجاع النتائج بعد الرسم
+            loadState(); 
         }
 
         function downloadBracket() {
