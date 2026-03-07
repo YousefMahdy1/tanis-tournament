@@ -61,7 +61,7 @@
                 <div class="team-slot"><span id="final-s1">؟</span><div><input type="number" id="f-p1" class="penalties-input i-f-0"><input type="number" id="f-g1" class="score-input" oninput="showPens('f', 0)"></div></div>
                 <button onclick="processFinal()" class="win-btn gold-bg"></button>
             </div>
-            <div id="winner-name">؟</div>
+            <div id="winner-name">البطل</div>
         </div>
 
         <div class="bracket-side side-left">
@@ -92,7 +92,31 @@
     </div>
 
     <script>
-        // دالة حفظ حالة الشجرة يدوياً بعيداً عن أرقام المجموعات
+        // --- دالة تسجيل الأهداف مباشرة في الإحصائيات ---
+     function recordGoalsDirectly(teamName, goalsCount) {
+    let g = parseInt(goalsCount) || 0;
+    if (g <= 0) return;
+
+    // جلب بيانات البطولة
+    let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
+    let found = false;
+
+    // البحث عن الفريق في المجموعات لزيادة أهدافه في الإحصائيات العامة (Dashboard)
+    for (let group in tournament.groups) {
+        let teamObj = tournament.groups[group].find(t => t.name.trim() === teamName.trim());
+        if (teamObj) {
+            teamObj.gf = (parseInt(teamObj.gf) || 0) + g;
+            found = true;
+            break; 
+        }
+    }
+
+    // إذا وجدنا الفريق، نحفظ التعديل ليظهر في لوحة الإحصائيات فوراً
+    if (found) {
+        localStorage.setItem("tournament", JSON.stringify(tournament));
+        console.log(`تم إضافة ${g} أهداف لفريق ${teamName} في الإحصائيات.`);
+    }
+}
         function saveState() {
             const state = { 
                 names: {}, 
@@ -118,7 +142,7 @@
                     if(parts.length >= 2) showPens(parts[0], parts[1], false); 
                 }
             }
-            document.getElementById("winner-name").innerText = data.winner || "؟";
+            document.getElementById("winner-name").innerText = data.winner || "البطل";
         }
 
         function showPens(stage, i, shouldSave = true) {
@@ -133,7 +157,6 @@
             if(shouldSave) saveState();
         }
 
-        // دالة تحديد الفائز فقط دون تعديل إحصائيات المجموعات
         function getWinner(n1, n2, g1, g2, p1, p2) {
             const s1 = parseInt(g1) || 0, s2 = parseInt(g2) || 0;
             if (s1 > s2) return n1;
@@ -147,13 +170,17 @@
             const g1 = document.getElementById(`m16-${i}-g1`).value;
             if(g0 === "" || g1 === "") return alert("أدخل النتيجة أولاً");
             
+            // تسجيل الهدافين
+            recordGoalsDirectly(n1, g0);
+            recordGoalsDirectly(n2, g1);
+
             const w = getWinner(n1, n2, g0, g1, 
                 document.getElementById(`m16-${i}-p0`).value, 
                 document.getElementById(`m16-${i}-p1`).value);
             
             document.getElementById(`qf-${Math.floor(i/2)}-s${i%2}`).innerText = w;
             saveState();
-            alert("صعد فريق: " + w);
+            alert("تم تسجيل الأهداف وصعود فريق: " + w);
         }
 
         function processMatch(stage, i) {
@@ -161,9 +188,12 @@
             const n1 = document.getElementById(`${stage}-${i}-s1`).innerText;
             const g0 = document.getElementById(`${stage}-${i}-g0`).value;
             const g1 = document.getElementById(`${stage}-${i}-g1`).value;
-            
             if(n0 === "؟" || g0 === "" || g1 === "") return alert("البيانات غير مكتملة");
             
+            // تسجيل الهدافين
+            recordGoalsDirectly(n0, g0);
+            recordGoalsDirectly(n1, g1);
+
             const w = getWinner(n0, n1, g0, g1, 
                 document.getElementById(`${stage}-${i}-p0`).value, 
                 document.getElementById(`${stage}-${i}-p1`).value);
@@ -177,7 +207,7 @@
             
             if(document.getElementById(targetId)) document.getElementById(targetId).innerText = w;
             saveState();
-            alert("صعد فريق: " + w);
+            alert("تم تسجيل الأهداف وصعود فريق: " + w);
         }
 
         function processFinal() {
@@ -187,13 +217,17 @@
             const g1 = document.getElementById(`f-g1`).value;
             if(g0 === "" || g1 === "") return alert("أدخل نتيجة النهائي");
             
+            // تسجيل الهدافين
+            recordGoalsDirectly(n0, g0);
+            recordGoalsDirectly(n1, g1);
+
             const w = getWinner(n0, n1, g0, g1, 
                 document.getElementById(`f-p0`).value, 
                 document.getElementById(`f-p1`).value);
                 
             document.getElementById("winner-name").innerText = w;
             saveState();
-            alert("بطل البطولة هو: " + w);
+            alert("تم تسجيل الأهداف، وبطل البطولة هو: " + w);
         }
 
         function renderKnockout() {
@@ -203,7 +237,6 @@
             let q = {};
             ["A","B","C","D","E","F","G","H"].forEach(g => {
                 let t = data.groups[g] || [];
-                // ترتيب المجموعات برمجياً للعرض فقط
                 t.sort((a,b) => (b.points||0) - (a.points||0) || (b.gf-b.ga) - (a.gf-a.ga));
                 q[g] = { first: t[0] || {name:`أول ${g}`}, second: t[1] || {name:`وصيف ${g}`} };
             });

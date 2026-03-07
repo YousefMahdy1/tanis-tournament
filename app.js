@@ -168,6 +168,58 @@ function confirmDeleteTeam() {
         updateDeleteTeamsList(group);
     }
 }
+/* ================= تعديل اسم الفريق ================= */
+
+// تحديث قائمة الفرق عند اختيار المجموعة في خانة التعديل
+function updateEditTeamsList(group) {
+    const teamSelect = document.getElementById("editTeamSelect");
+    teamSelect.innerHTML = '<option value="" disabled selected>اختر الفريق</option>';
+    const teams = tournament.groups[group] || [];
+    teams.forEach((team) => {
+        teamSelect.add(new Option(team.name, team.name));
+    });
+}
+
+function renameTeam() {
+    const group = document.getElementById("editGroupSelect").value;
+    const oldName = document.getElementById("editTeamSelect").value;
+    const newName = document.getElementById("newTeamName").value.trim();
+
+    if (!group || !oldName || !newName) return alert("أكمل البيانات أولاً");
+    if (oldName === newName) return alert("الاسم الجديد مطابق للاسم القديم!");
+
+    // 1. تحديث الاسم في مصفوفة المجموعات
+    const team = tournament.groups[group].find(t => t.name === oldName);
+    if (team) {
+        team.name = newName;
+    }
+
+    // 2. تحديث الاسم في سجل المباريات (ضروري جداً للمواجهات المباشرة)
+    let allMatches = JSON.parse(localStorage.getItem("matches")) || [];
+    allMatches.forEach(m => {
+        if (m.group === group) {
+            if (m.home === oldName) m.home = newName;
+            if (m.away === oldName) m.away = newName;
+        }
+    });
+    localStorage.setItem("matches", JSON.stringify(allMatches));
+
+    // 3. الحفظ وتحديث الجدول
+    saveTournament();
+    renderTable(group);
+    
+    // تنظيف الخانات
+    document.getElementById("newTeamName").value = "";
+    updateEditTeamsList(group);
+    
+    // تحديث أسماء الفرق في قائمة الهدافين أيضاً
+    let scorers = JSON.parse(localStorage.getItem("scorers")) || [];
+    scorers.forEach(s => {
+        if (s.team === oldName) s.team = newName;
+    });
+    localStorage.setItem("scorers", JSON.stringify(scorers));
+    alert(`تم تغيير الاسم من [${oldName}] إلى [${newName}] بنجاح ✅`);
+}
 
 function saveTournament(){
     localStorage.setItem("tournament", JSON.stringify(tournament));
