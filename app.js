@@ -103,15 +103,7 @@ function processMatch(group, team1Name, goals1, team2Name, goals2) {
     }
 }
 
-function sortGroup(group) {
-    tournament.groups[group].sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        const diffA = a.gf - a.ga;
-        const diffB = b.gf - b.ga;
-        if (diffB !== diffA) return diffB - diffA;
-        return b.gf - a.gf;
-    });
-}
+
 
 /* ================= رسم الجدول والتحميل ================= */
 function renderTable(group) {
