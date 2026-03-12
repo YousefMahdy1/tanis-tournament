@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Knockout</title>
+    <title>Knockout - الأدوار الإقصائية</title>
     <link rel="stylesheet" href="knockout-style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -92,37 +92,22 @@
     </div>
 
     <script>
-        // --- دالة تسجيل الأهداف مباشرة في الإحصائيات ---
-     function recordGoalsDirectly(teamName, goalsCount) {
-    let g = parseInt(goalsCount) || 0;
-    if (g <= 0) return;
-
-    // جلب بيانات البطولة
-    let tournament = JSON.parse(localStorage.getItem("tournament")) || { groups: {} };
-    let found = false;
-
-    // البحث عن الفريق في المجموعات لزيادة أهدافه في الإحصائيات العامة (Dashboard)
-    for (let group in tournament.groups) {
-        let teamObj = tournament.groups[group].find(t => t.name.trim() === teamName.trim());
-        if (teamObj) {
-            teamObj.gf = (parseInt(teamObj.gf) || 0) + g;
-            found = true;
-            break; 
+        // دالة التسجيل في السجل العام فقط (لا يتم تعديل كائن tournament)
+        function recordMatchInStats(n0, g0, n1, g1) {
+            let matchesLog = JSON.parse(localStorage.getItem("matches")) || [];
+            matchesLog.push({
+                home: n0,
+                away: n1,
+                homeGoals: parseInt(g0) || 0,
+                awayGoals: parseInt(g1) || 0,
+                group: "أدوار إقصائية",
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem("matches", JSON.stringify(matchesLog));
         }
-    }
 
-    // إذا وجدنا الفريق، نحفظ التعديل ليظهر في لوحة الإحصائيات فوراً
-    if (found) {
-        localStorage.setItem("tournament", JSON.stringify(tournament));
-        console.log(`تم إضافة ${g} أهداف لفريق ${teamName} في الإحصائيات.`);
-    }
-}
         function saveState() {
-            const state = { 
-                names: {}, 
-                scores: {}, 
-                winner: document.getElementById("winner-name").innerText 
-            };
+            const state = { names: {}, scores: {}, winner: document.getElementById("winner-name").innerText };
             document.querySelectorAll('span[id]').forEach(el => state.names[el.id] = el.innerText);
             document.querySelectorAll('input').forEach(el => state.scores[el.id] = el.value);
             localStorage.setItem("tanis_bracket_data", JSON.stringify(state));
@@ -131,29 +116,20 @@
         function loadState() {
             const data = JSON.parse(localStorage.getItem("tanis_bracket_data"));
             if(!data) return;
-            for(let id in data.names) {
-                if(document.getElementById(id)) document.getElementById(id).innerText = data.names[id];
-            }
+            for(let id in data.names) if(document.getElementById(id)) document.getElementById(id).innerText = data.names[id];
             for(let id in data.scores) {
                 let el = document.getElementById(id);
-                if(el) { 
-                    el.value = data.scores[id]; 
-                    let parts = id.split('-'); 
-                    if(parts.length >= 2) showPens(parts[0], parts[1], false); 
-                }
+                if(el) { el.value = data.scores[id]; let parts = id.split('-'); if(parts.length >= 2) showPens(parts[0], parts[1], false); }
             }
-            document.getElementById("winner-name").innerText = data.winner || "البطل";
+            document.getElementById("winner-name").innerText = data.winner || "🏆 البطل 🏆";
         }
 
         function showPens(stage, i, shouldSave = true) {
             const g0 = document.getElementById(`${stage}-${i}-g0`)?.value;
             const g1 = document.getElementById(`${stage}-${i}-g1`)?.value;
             const pens = document.querySelectorAll(`.i-${stage}-${i}`);
-            if(g0 !== "" && g1 !== "" && g0 === g1) {
-                pens.forEach(p => p.style.display = "inline-block");
-            } else {
-                pens.forEach(p => p.style.display = "none");
-            }
+            if(g0 !== "" && g1 !== "" && g0 === g1) pens.forEach(p => p.style.display = "inline-block");
+            else pens.forEach(p => p.style.display = "none");
             if(shouldSave) saveState();
         }
 
@@ -169,18 +145,11 @@
             const g0 = document.getElementById(`m16-${i}-g0`).value;
             const g1 = document.getElementById(`m16-${i}-g1`).value;
             if(g0 === "" || g1 === "") return alert("أدخل النتيجة أولاً");
-            
-            // تسجيل الهدافين
-            recordGoalsDirectly(n1, g0);
-            recordGoalsDirectly(n2, g1);
-
-            const w = getWinner(n1, n2, g0, g1, 
-                document.getElementById(`m16-${i}-p0`).value, 
-                document.getElementById(`m16-${i}-p1`).value);
-            
+            recordMatchInStats(n1, g0, n2, g1);
+            const w = getWinner(n1, n2, g0, g1, document.getElementById(`m16-${i}-p0`).value, document.getElementById(`m16-${i}-p1`).value);
             document.getElementById(`qf-${Math.floor(i/2)}-s${i%2}`).innerText = w;
             saveState();
-            alert("تم تسجيل الأهداف وصعود فريق: " + w);
+            alert("تم تسجيل المباراة وصعود: " + w);
         }
 
         function processMatch(stage, i) {
@@ -189,97 +158,45 @@
             const g0 = document.getElementById(`${stage}-${i}-g0`).value;
             const g1 = document.getElementById(`${stage}-${i}-g1`).value;
             if(n0 === "؟" || g0 === "" || g1 === "") return alert("البيانات غير مكتملة");
-            
-            // تسجيل الهدافين
-            recordGoalsDirectly(n0, g0);
-            recordGoalsDirectly(n1, g1);
-
-            const w = getWinner(n0, n1, g0, g1, 
-                document.getElementById(`${stage}-${i}-p0`).value, 
-                document.getElementById(`${stage}-${i}-p1`).value);
-            
-            let targetId;
-            if(stage === 'qf') {
-                targetId = (i < 2) ? `sf-0-s${i%2}` : `sf-1-s${i%2}`;
-            } else if(stage === 'sf') {
-                targetId = `final-s${i}`;
-            }
-            
+            recordMatchInStats(n0, g0, n1, g1);
+            const w = getWinner(n0, n1, g0, g1, document.getElementById(`${stage}-${i}-p0`).value, document.getElementById(`${stage}-${i}-p1`).value);
+            let targetId = (stage === 'qf') ? ((i < 2) ? `sf-0-s${i%2}` : `sf-1-s${i%2}`) : `final-s${i}`;
             if(document.getElementById(targetId)) document.getElementById(targetId).innerText = w;
             saveState();
-            alert("تم تسجيل الأهداف وصعود فريق: " + w);
+            alert("تم تسجيل المباراة وصعود: " + w);
         }
 
         function processFinal() {
-            const n0 = document.getElementById(`final-s0`).innerText;
-            const n1 = document.getElementById(`final-s1`).innerText;
-            const g0 = document.getElementById(`f-g0`).value;
-            const g1 = document.getElementById(`f-g1`).value;
+            const n0 = document.getElementById(`final-s0`).innerText, n1 = document.getElementById(`final-s1`).innerText;
+            const g0 = document.getElementById(`f-g0`).value, g1 = document.getElementById(`f-g1`).value;
             if(g0 === "" || g1 === "") return alert("أدخل نتيجة النهائي");
-            
-            // تسجيل الهدافين
-            recordGoalsDirectly(n0, g0);
-            recordGoalsDirectly(n1, g1);
-
-            const w = getWinner(n0, n1, g0, g1, 
-                document.getElementById(`f-p0`).value, 
-                document.getElementById(`f-p1`).value);
-                
-            document.getElementById("winner-name").innerText = w;
+            recordMatchInStats(n0, g0, n1, g1);
+            const w = getWinner(n0, n1, g0, g1, document.getElementById(`f-p0`).value, document.getElementById(`f-p1`).value);
+            document.getElementById("winner-name").innerText = "🏆 " + w + " 🏆";
             saveState();
-            alert("تم تسجيل الأهداف، وبطل البطولة هو: " + w);
+            alert("بطل البطولة هو: " + w);
         }
 
         function renderKnockout() {
             const data = JSON.parse(localStorage.getItem("tournament"));
             if(!data) return;
-            
             let q = {};
             ["A","B","C","D","E","F","G","H"].forEach(g => {
-                let t = data.groups[g] || [];
-                t.sort((a,b) => (b.points||0) - (a.points||0) || (b.gf-b.ga) - (a.gf-a.ga));
+                let t = (data.groups[g] || []).sort((a,b) => (b.points||0)-(a.points||0) || (b.gf-b.ga)-(a.gf-a.ga));
                 q[g] = { first: t[0] || {name:`أول ${g}`}, second: t[1] || {name:`وصيف ${g}`} };
             });
-
-            const r16Matches = [
-                [q.A.first, q.C.second], [q.F.first, q.H.second], [q.G.first, q.E.second], [q.D.first, q.B.second],
-                [q.B.first, q.D.second], [q.C.first, q.A.second], [q.E.first, q.G.second], [q.H.first, q.F.second]
-            ];
-
+            const r16Matches = [[q.A.first, q.C.second], [q.F.first, q.H.second], [q.G.first, q.E.second], [q.D.first, q.B.second], [q.B.first, q.D.second], [q.C.first, q.A.second], [q.E.first, q.G.second], [q.H.first, q.F.second]];
             const r16R = document.getElementById("r16-right"), r16L = document.getElementById("r16-left");
             r16R.innerHTML = ""; r16L.innerHTML = "";
-
             r16Matches.forEach((m, i) => {
-                let html = `
-                <div class="match-card">
-                    <div class="round-header">دور الـ 16</div>
-                    <div class="team-slot"><span>${m[0].name}</span><div><input type="number" id="m16-${i}-p0" class="penalties-input i-m16-${i}"><input type="number" id="m16-${i}-g0" class="score-input" oninput="showPens('m16', ${i})"></div></div>
-                    <div class="team-slot"><span>${m[1].name}</span><div><input type="number" id="m16-${i}-p1" class="penalties-input i-m16-${i}"><input type="number" id="m16-${i}-g1" class="score-input" oninput="showPens('m16', ${i})"></div></div>
-                    <button onclick="processR16(${i}, '${m[0].name}', '${m[1].name}')" class="win-btn"></button>
-                </div>`;
+                let html = `<div class="match-card"><div class="round-header">دور الـ 16</div><div class="team-slot"><span>${m[0].name}</span><div><input type="number" id="m16-${i}-p0" class="penalties-input i-m16-${i}"><input type="number" id="m16-${i}-g0" class="score-input" oninput="showPens('m16', ${i})"></div></div><div class="team-slot"><span>${m[1].name}</span><div><input type="number" id="m16-${i}-p1" class="penalties-input i-m16-${i}"><input type="number" id="m16-${i}-g1" class="score-input" oninput="showPens('m16', ${i})"></div></div><button onclick="processR16(${i}, '${m[0].name}', '${m[1].name}')" class="win-btn"></button></div>`;
                 if(i < 4) r16R.innerHTML += html; else r16L.innerHTML += html;
             });
-            
             loadState(); 
         }
 
-        function downloadBracket() {
-            const area = document.getElementById('capture-area');
-            html2canvas(area, { backgroundColor: "#000", scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'bracket-tanis.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        }
-
-        function resetBracket() {
-            if(confirm("سيتم تصفير شجرة الأدوار الإقصائية فقط، هل أنت متأكد؟")) {
-                localStorage.removeItem("tanis_bracket_data");
-                location.reload();
-            }
-        }
-
+        function downloadBracket() { html2canvas(document.getElementById('capture-area'), { backgroundColor: "#000", scale: 2 }).then(canvas => { const link = document.createElement('a'); link.download = 'bracket.png'; link.href = canvas.toDataURL(); link.click(); }); }
+        function resetBracket() { if(confirm("تصفير الشجرة؟")) { localStorage.removeItem("tanis_bracket_data"); location.reload(); } }
         window.onload = renderKnockout;
     </script>
 </body>
